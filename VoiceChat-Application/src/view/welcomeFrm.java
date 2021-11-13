@@ -1,28 +1,37 @@
 package view;
 
+import java.awt.Color;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import model.Params;
 
 public class welcomeFrm extends javax.swing.JFrame {
-    private boolean checked = false;
     private Icon icon;
     private Icon icon2;
+    Thread CheckInfo;
     private Params params;
+    mainFrm mainFrm;
     public welcomeFrm() {
         initComponents();
         params = new Params();
         icon = new ImageIcon("src\\view\\icon\\ok-16.png");
         icon2 = new ImageIcon("src\\view\\icon\\warning-2-16.png");
-        new Thread() {
-            int port;
+        CheckInfo = new Thread() {
+            boolean isAddr = false;
+            boolean isPort = false;
+            boolean isName = false;
+            
             @Override
             public void run() {
                 while(true){
-                    if(jTextField1.getText().trim().length() >=9){
-                        jButton1.setIcon(icon);
-                    }else{
-                        jButton1.setIcon(icon2);
+                    if(jTextField1.getText() != null){
+                        if(jTextField1.getText().trim().length() >=9){
+                            jButton1.setIcon(icon);
+                            isAddr = true;
+                        }else{
+                            jButton1.setIcon(icon2);
+                            isAddr = false;
+                        }
                     }
                     String portTxt = jTextField2.getText();
                     boolean check = true;
@@ -33,16 +42,36 @@ public class welcomeFrm extends javax.swing.JFrame {
                             check = false;
                         }
                     }
-                    if(check && !portTxt.equals("")) jButton2.setIcon(icon);
-                    else jButton2.setIcon(icon2);
-                    if(jTextField3.getText().trim().length() > 0 ){
-                        jButton3.setIcon(icon);
+                    if(check && !portTxt.equals("") && Integer.parseInt(portTxt) >= 1024){
+                        jButton2.setIcon(icon);
+                        isPort = true;
+                    }
+                    else
+                    {
+                        jButton2.setIcon(icon2);
+                        isPort = false;
+                    }
+                    if(jTextField3.getText() != null){
+                        if(jTextField3.getText().trim().length() > 0 ){
+                            jButton3.setIcon(icon);
+                            isName = true;
+                        }else{
+                            jButton3.setIcon(icon2);
+                            isName = false;
+                        }
+                    }
+                    if(isAddr && isPort && isName){
+                        jButton5.setEnabled(true);
+                        jButton5.setForeground(Color.GREEN);
                     }else{
-                        jButton3.setIcon(icon2);
+                        jButton5.setEnabled(false);
+                        jButton5.setForeground(Color.GRAY);
                     }
                 }
             }
-        }.start();
+            
+        };
+        CheckInfo.start();
     }
 
  
@@ -130,6 +159,12 @@ public class welcomeFrm extends javax.swing.JFrame {
         jButton5.setFont(new java.awt.Font("JetBrains Mono Medium", 1, 12)); // NOI18N
         jButton5.setForeground(new java.awt.Color(51, 255, 0));
         jButton5.setText("Confirm");
+        jButton5.setEnabled(false);
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
 
         jButton6.setBackground(new java.awt.Color(255, 255, 255));
         jButton6.setFont(new java.awt.Font("JetBrains Mono Medium", 1, 12)); // NOI18N
@@ -226,6 +261,29 @@ public class welcomeFrm extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_jButton6ActionPerformed
 
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        params.setAddr(jTextField1.getText());
+        params.setPort(Integer.parseInt(jTextField2.getText()));
+        params.setName(jTextField3.getText());
+        mainFrm = new mainFrm();
+        mainFrm.setParams(params);
+        mainFrm.setName();
+        mainFrm.setServerInfo();
+        int stt = mainFrm.InitSocket();
+        if(stt != 0){
+            mainFrm.setVisible(true);
+            this.setVisible(false);
+        }
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    public Params getParams() {
+        return params;
+    }
+
+    public void setParams(Params params) {
+        this.params = params;
+    }
+    
     public static void main(String args[]) {
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -238,21 +296,15 @@ public class welcomeFrm extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(welcomeFrm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(welcomeFrm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(welcomeFrm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(welcomeFrm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        
+        //</editor-fold>
 
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new welcomeFrm().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new welcomeFrm().setVisible(true);
         });
     }
 
